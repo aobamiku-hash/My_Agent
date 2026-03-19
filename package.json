@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "my-agent",
   "displayName": "My Copilot Agents",
   "description": "汎用 GitHub Copilot エージェント一式をプロジェクトに展開する VS Code 拡張機能",
