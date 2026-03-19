@@ -1,0 +1,41 @@
+﻿{
+  "name": "my-agent",
+  "displayName": "My Copilot Agents",
+  "description": "汎用 GitHub Copilot エージェント一式をプロジェクトに展開する VS Code 拡張機能",
+  "version": "1.0.0",
+  "publisher": "aobamiku-hash",
+  "engines": { "vscode": "^1.95.0" },
+  "categories": ["AI"],
+  "keywords": ["copilot", "agent", "custom-agent"],
+  "repository": { "type": "git", "url": "https://github.com/aobamiku-hash/My_Agent.git" },
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "myAgent.install",
+        "title": "My Agents: 現在のプロジェクトにエージェントをインストール"
+      },
+      {
+        "command": "myAgent.update",
+        "title": "My Agents: インストール済みエージェントを最新版に更新"
+      },
+      {
+        "command": "myAgent.status",
+        "title": "My Agents: インストール状況を確認"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run compile",
+    "package": "npx vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.95.0",
+    "@types/node": "^22.x",
+    "typescript": "^5.x",
+    "@vscode/vsce": "^3.x"
+  }
+}
