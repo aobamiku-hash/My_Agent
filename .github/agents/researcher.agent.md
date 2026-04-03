@@ -1,5 +1,5 @@
 ---
-name: researcher
+name: Researcher
 description: >
   調査・情報収集専門サブエージェント。コードベース探索、ドキュメント読み込み、
   パターン分析を担当する。Mainエージェントから委譲されたリサーチタスクを実行し、

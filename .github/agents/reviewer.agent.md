@@ -1,5 +1,5 @@
 ---
-name: reviewer
+name: Reviewer
 description: >
   品質確認・レビュー専門サブエージェント。実装成果物のコードレビュー、
   セキュリティチェック（OWASP Top 10）、動作確認、レポート生成を担当する。

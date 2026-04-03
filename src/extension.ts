@@ -13,13 +13,28 @@ const EXTRA_FILES  = [".github/copilot-instructions.md"];
 
 let statusBar: vscode.StatusBarItem;
 
-// HTTP helper (no external deps)
+const ALLOWED_HOSTS = ["api.github.com", "raw.githubusercontent.com"];
 
-function httpsGet(url: string): Promise<string> {
+// HTTP helper (no external deps — SSRF防御・リダイレクト制限付き)
+
+function httpsGet(url: string, maxRedirects = 5): Promise<string> {
   return new Promise((resolve, reject) => {
-    https.get(url, { headers: { "User-Agent": "my-agent-vscode-ext" } }, res => {
+    if (maxRedirects < 0) {
+      return reject(new Error("リダイレクト回数の上限に達しました"));
+    }
+    https.get(url, { headers: { "User-Agent": "my-agent-vscode-ext" }, timeout: 15000 }, res => {
       if (res.statusCode === 301 || res.statusCode === 302) {
-        return httpsGet(res.headers.location!).then(resolve).catch(reject);
+        const loc = res.headers.location;
+        if (!loc) { return reject(new Error("リダイレクト先が空です")); }
+        try {
+          const host = new URL(loc).hostname;
+          if (!ALLOWED_HOSTS.includes(host)) {
+            return reject(new Error(`許可されていないリダイレクト先: ${host}`));
+          }
+        } catch {
+          return reject(new Error(`不正なリダイレクト URL: ${loc}`));
+        }
+        return httpsGet(loc, maxRedirects - 1).then(resolve).catch(reject);
       }
       if (res.statusCode !== 200) {
         return reject(new Error(`HTTP ${res.statusCode}: ${url}`));
@@ -50,9 +65,12 @@ async function downloadAgents(
 ): Promise<number> {
   progress.report({ message: "\u30d5\u30a1\u30a4\u30eb\u4e00\u89a7\u3092\u53d6\u5f97\u4e2d..." });
   const treeJson = await httpsGet(TREE_API);
-  const tree: { tree: Array<{ path: string; type: string }> } = JSON.parse(treeJson);
+  const parsed = JSON.parse(treeJson) as { tree?: Array<{ path: string; type: string }> };
+  if (!Array.isArray(parsed?.tree)) {
+    throw new Error("GitHub API \u306e\u30ec\u30b9\u30dd\u30f3\u30b9\u304c\u4e0d\u6b63\u3067\u3059\uff08\u30ec\u30fc\u30c8\u5236\u9650\u306e\u53ef\u80fd\u6027\u304c\u3042\u308a\u307e\u3059\uff09");
+  }
 
-  const targets = tree.tree.filter(item => {
+  const targets = parsed.tree.filter(item => {
     if (item.type !== "blob") { return false; }
     const inDir  = TRACKED_DIRS.some(d => item.path.startsWith(d + "/"));
     const isFile = EXTRA_FILES.includes(item.path);
@@ -79,7 +97,7 @@ function getStatusLines(workspaceRoot: string): string[] {
   for (const dir of TRACKED_DIRS) {
     const full = path.join(workspaceRoot, dir);
     if (fs.existsSync(full)) {
-      const n = fs.readdirSync(full).filter(f => f.endsWith(".md")).length;
+      const n = fs.readdirSync(full).filter((f: string) => f.endsWith(".md")).length;
       lines.push(`\u2705 ${dir.replace(".github/", "")}: ${n}\u30d5\u30a1\u30a4\u30eb`);
     } else {
       lines.push(`\u26a0\ufe0f  ${dir.replace(".github/", "")}: \u672a\u30a4\u30f3\u30b9\u30c8\u30fc\u30eb`);
@@ -122,7 +140,9 @@ async function applyRecommendedSettings(): Promise<void> {
   fs.mkdirSync(settingsDir, { recursive: true });
   let current: Record<string, unknown> = {};
   if (fs.existsSync(settingsPath)) {
-    try { current = JSON.parse(fs.readFileSync(settingsPath, "utf8")); } catch {}
+    try { current = JSON.parse(fs.readFileSync(settingsPath, "utf8")); } catch {
+      vscode.window.showWarningMessage("settings.json \u306e\u8aad\u307f\u8fbc\u307f\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002\u65b0\u898f\u4f5c\u6210\u3057\u307e\u3059\u3002");
+    }
   }
   const merged = {
     ...current,
