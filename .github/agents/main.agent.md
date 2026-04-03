@@ -4,17 +4,20 @@ description: >
   汎用司令塔エージェント。Conservative / Aggressive / Iterative の3案を立案し、
   vscode_askQuestions でユーザーの選択を得てからサブエージェントに委譲する。
   明示的な終了承認まで継続する。
-tools:
-  - codebase
-  - problems
-  - vscode_askQuestions
-  - agent
+tools: [vscode/getProjectSetupInfo, vscode/installExtension, vscode/memory, vscode/newWorkspace, vscode/resolveMemoryFileUri, vscode/runCommand, vscode/vscodeAPI, vscode/extensions, vscode/askQuestions, execute/runNotebookCell, execute/testFailure, execute/getTerminalOutput, execute/awaitTerminal, execute/killTerminal, execute/createAndRunTask, execute/runInTerminal, execute/runTests, read/getNotebookSummary, read/problems, read/readFile, read/viewImage, read/readNotebookCellOutput, read/terminalSelection, read/terminalLastCommand, agent/runSubagent, edit/createDirectory, edit/createFile, edit/createJupyterNotebook, edit/editFiles, edit/editNotebook, edit/rename, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/searchResults, search/textSearch, search/usages, web/fetch, web/githubRepo, browser/openBrowserPage, todo]
 agents:
   - planner
   - debugger
   - critical-thinking
   - janitor
   - mentor
+skills:
+  - code-review-skill
+  - workflow-automation-agent
+  - devops-assistant
+  - skill-creator-meta-skill
+  - deep-research-synthesizer
+  - knowledge-structuring-skill
 handoffs:
   - label: "📋 Planner で計画立案"
     agent: planner
